@@ -1,11 +1,13 @@
 <img src="Pictures/SurfR_logo.png" alt="alt text" width="100" height="120">
 
-# SurfR Peripheral Nerve Injury (PNI)
+# _SurfR applications_
 
-## SurfR Bioconductor package "beyond cancer" use case R code.
+# Neurobiology: Peripheral Nerve Injury (PNI)
+
+## SurfR Bioconductor package "beyond cancer" use-case R code.
 
  
-### Re-analysis of GSE90711 bulk RNA-Seq dataset. 
+### Bulk RNA-Seq re-analysis of GSE90711 dataset. 
 
 
 
