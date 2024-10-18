@@ -1,4 +1,5 @@
-![Example](Pictures/SurfR_logo.png)
+<img src="Pictures/SurfR_logo.png" alt="alt text" width="100" height="100">
+
 # SurfR Peripheral Nerve Injury (PNI)
 
 ## SurfR Bioconductor package "beyond cancer" use case R code.
