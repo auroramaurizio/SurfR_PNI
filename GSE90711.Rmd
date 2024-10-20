@@ -41,9 +41,12 @@ mGSE90711 <- GEOmetadata(GSE = "GSE90711")
 #SC vs fibroblast cell lines
 #injured vs CTRL fascicles
 
+unique(mGSE90711$GSM)
+
 mGSE90711_cells <- mGSE90711[7:14, ]
 mGSE90711_fascicle <- mGSE90711[1:6, ]
 
+nrow(mGSE90711_fascicle)
 
 # create new metadata column in order to remove unwanted special characters
 # Add a new column 'CellType' based on the 'title' column
@@ -53,6 +56,8 @@ mGSE90711_cells$CellType <- ifelse(grepl("Schwann cells", mGSE90711_cells$title)
 mGSE90711_fascicle$CellType <- ifelse(grepl("injured", mGSE90711_fascicle$title), "injured", 
                                    ifelse(grepl("CTRL", mGSE90711_fascicle$title), "CTRL", NA))
 
+
+head(mGSE90711_fascicle)
 # create new metadata column in order to remove unwanted special characters
 unwanted_character <- " "
 fx <- function(x) {
@@ -159,20 +164,29 @@ df_GEO_cells <- df_GEO_cells[!is.na(df_GEO_cells$padj), ]
 
 # Detect SP amoung differentially expressed genes
 fdr_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05, "GeneID"]
-
 SP_GEO_cells <- Gene2SProtein(genes = fdr_GeneID_cells, input_type = "gene_name")
+nrow(SP_GEO_cells)
 #745 out of 5399 genes have a matching surface protein
 
-fdrUP_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange > 1, "GeneID"]
+nrow(df_GEO_cells)
+
+fdrUP_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange > 0, "GeneID"]
+
 SPup_GEO_cells <- Gene2SProtein(genes = fdrUP_GeneID_cells, input_type = "gene_name")
-#443 out of 1832 genes have a matching surface protein
+#443 out of 1832 genes have a matching surface protein # FC1
+#495 out of 2845 genes have a matching surface protein # FC 0
 
-fdrDW_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange < 1, "GeneID"]
+nrow(ML_SPup_GEO_cells <- SPup_GEO_cells[grepl("machine learning", SPup_GEO_cells$Surfaceome.Label.Source),]) #334
+nrow( SPup_GEO_cells[!grepl("machine learning", SPup_GEO_cells$Surfaceome.Label.Source),]) #161
+
+
+fdrDW_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange < 0, "GeneID"]
 SPdw_GEO_cells <- Gene2SProtein(genes = fdrDW_GeneID_cells, input_type = "gene_name")
-#302 out of 3567 genes have a matching surface protein
+#205 out of 1267 genes have a matching surface protein # FC -1
+#250 out of 2554 genes have a matching surface protein # FC 0
 
+write.xlsx(SPup_GEO_cells, "Supp_table_GSE90711_SPup_GEO_cells_FDR.xlsx")
 
-write.xlsx(SPup_GEO_cells, "Supp_table_GSE90711_SPup_GEO_cells.xlsx")
 ```
 
 ```{r GEO fascicle DGE }
@@ -193,24 +207,33 @@ df_GEO_fascicle <- df_GEO_fascicle[!is.na(df_GEO_fascicle$padj), ]
 
 # Detect SP amoung differentially expressed genes
 fdr_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05, "GeneID"]
+length(fdr_GeneID_fascicle)
 
 SP_GEO_fascicle <- Gene2SProtein(genes = fdr_GeneID_fascicle, input_type = "gene_name")
 #566 out of 4293 genes have a matching surface protein
 
-fdrUP_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange > 1, "GeneID"]
+fdrUP_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange > 0, "GeneID"]
 SPup_GEO_fascicle <- Gene2SProtein(genes = fdrUP_GeneID_fascicle, input_type = "gene_name")
-#203 out of 1373 genes have a matching surface protein
+#203 out of 1373 genes have a matching surface protein FC > 1
+#251 out of 2113 genes have a matching surface protein FC > 0
 
-fdrDW_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange < 1, "GeneID"]
+nrow(SPup_GEO_fascicle[grepl("machine learning", SPup_GEO_fascicle$Surfaceome.Label.Source),]) #149
+nrow(SPup_GEO_fascicle[!grepl("machine learning", SPup_GEO_fascicle$Surfaceome.Label.Source),]) #102
+
+fdrDW_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange < 0, "GeneID"]
 SPdw_GEO_fascicle <- Gene2SProtein(genes = fdrDW_GeneID_fascicle, input_type = "gene_name")
-#363 out of 2920 genes have a matching surface protein
+# 315 out of 2180 genes have a matching surface protein FC < 0
 
-SPup_GEO_fascicle
 
-write.xlsx(SPup_GEO_fascicle, "Supp_table_GSE90711_SPup_GEO_fascicle.xlsx")
+write.xlsx(SPup_GEO_fascicle, "Supp_table_GSE90711_SPup_GEO_fascicle_FDR0.xlsx")
 ```
 
 ```{r venn }
+common_rownames <- rownames(SPup_GEO_fascicle)[rownames(SPup_GEO_fascicle) %in% rownames(SPup_GEO_cells)]
+SPup_GEO_common <- SPup_GEO_fascicle[common_rownames, ]
+SPup_GEO_common$GeneID
+
+
 S_list <- list(SPup_GEO_cells = rownames(SPup_GEO_cells),
                SPup_GEO_fascicle = rownames(SPup_GEO_fascicle))
 
@@ -242,7 +265,7 @@ Enrich <- Enrichment(dfList,
 
 # represent the enriched pathways as a barplot
 
-pdf("Enrichment_barplot_GEO_cells_UP_allgenes.pdf", 10, 4)
+pdf("Enrichment_barplot_GEO_cells_UP_allgenes.pdf", 7, 4)
 Enrichment_barplot(Enrich$GEO_cells,
                    enrich.databases <- c("GO_Biological_Process_2021"),
                    p_adj = 0.05,
@@ -258,7 +281,7 @@ Enrichment_barplot(Enrich$GEO_cells,
                    cond = "DOWN")
 dev.off()
 
-pdf("Enrichment_barplot_GEO_fascicle_UP_allgenes.pdf", 10, 4)
+pdf("Enrichment_barplot_GEO_fascicle_UP_allgenes.pdf", 7, 4)
 Enrichment_barplot(Enrich$GEO_fascicle,
                    enrich.databases <- c("GO_Biological_Process_2021"),
                    p_adj = 0.05,
@@ -272,7 +295,7 @@ Enrichment_barplot(Enrich$GEO_fascicle,
                    p_adj = 0.05,
                    num_term = 10,
                    cond = "DOWN")
-
+dev.off()
 
 
 ```
@@ -337,55 +360,6 @@ dev.off()
 
 ```
 
-# ML only predicted SP in the GEO cells dataset - enrichment
-
-```{r ML only predicted SP }
-#library(enrichR)
-
-ML_SPup_GEO_cells <- SPup_GEO_cells[grepl("machine learning", SPup_GEO_cells$Surfaceome.Label.Source),]
-ML_SPup_GEO_cells <- ML_SPup_GEO_cells$UniProt.gene
-df_SP_GEO_cells_genes_ML <- df_GEO_cells[rownames(df_GEO_cells) %in% ML_SPup_GEO_cells, ]
-df_SP_GEO_cells_genes_ML <- list(SP_GEO_cells_ML = as.data.frame(df_SP_GEO_cells_genes_ML)) 
-
-Enrich_GEO_BP_ML <- Enrichment(df_SP_GEO_cells_genes_ML,
-                               enrich.databases = c("GO_Biological_Process_2021"),
-                               p_adj = 0.05, logFC = 1, save.results = TRUE)
-
-
-
-Enrich_GEO_BP_ML_P <- Enrichment_barplot(Enrich_GEO_BP_ML$SP_GEO_cells_ML,
-                                         enrich.databases <- c("GO_Biological_Process_2021"),
-                                         p_adj = 0.05,
-                                         num_term = 10)
-
-
-print(Enrich_GEO_BP_ML_P +ggtitle("SP - GEO BP ML")+ 
-        theme(
-          legend.title = element_text(size = 6), 
-          legend.text = element_text(size = 6)   
-        ) )
-
-
-Enrich_GEO_CC_ML <- Enrichment(df_SP_GEO_cells_genes_ML,
-                               enrich.databases = c("GO_Cellular_Component_2021"),
-                               p_adj = 0.05, logFC = 1, save.results = TRUE)
-
-Enrich_GEO_CC_ML_P <- Enrichment_barplot(Enrich_GEO_CC_ML$SP_GEO_cells_ML,
-                                         enrich.databases <- c("GO_Cellular_Component_2021"),
-                                         p_adj = 0.05,
-                                         num_term = 10)
-
-pdf("ML_predicted_SP_GEO_cells_GEO_CC_.pdf")
-print(Enrich_GEO_CC_ML_P +ggtitle("SP - GEO CC ML predicted")+ 
-        theme(
-          legend.title = element_text(size = 6), 
-          legend.text = element_text(size = 6)   
-        ) )
-dev.off()
-
-
-```
-
 
 ```{r GEO CC, MF }
 
@@ -432,7 +406,6 @@ write.xlsx(annotated_GEO, "annotated_GEO_cells_WikiPathway_2021_Human.xlsx")
 ```
 
 
-
 ## Plot the fraction on SPCG coding for receptor, enzymes, transporters etc.
 
 ```{r Almen classification }
@@ -453,17 +426,18 @@ Splot(SPup_GEO_fascicle,
 dev.off()
 
 SPup <- SPup_GEO_cells[rownames(SPup_GEO_cells) %in% rownames(SPup_GEO_fascicle), ]
+nrow(SPup)
 
 pdf("Almen_class_SPUP_GEO_common.pdf")
 Splot(SPup,
       group.by = "Membranome.Almen.main-class",
       main = "Almen class Adj")
 dev.off()
+```
 
-
-
+```{r Almen classification }
 ####### enrichment of common SPCG ############
-
+nrow(SPup)
 all_SPup <- SPup$UniProt.gene
 df_SP_GEO_cells_genes_all_comm <- df_GEO_cells[rownames(df_GEO_cells) %in% all_SPup, ]
 ML_SPup <- SPup[grepl("machine learning", SPup$Surfaceome.Label.Source),]
@@ -508,6 +482,13 @@ print(Enrich_GEO_CC_ML_P +ggtitle("common ML-pred SP CC")+
 dev.off()
 
 
+pdf("ML_predicted_SP_common_CC_.pdf", 7, 4)
+Enrich_GEO_CC_ML_P
+dev.off()
+
+df_SP_GEO_cells_genes_all_comm$GeneID
+
+
 df_SP_GEO_cells_genes_all <- list(SP_GEO_cells_all = as.data.frame(df_SP_GEO_cells_genes_all_comm))
 
 
@@ -519,7 +500,7 @@ Enrich_GEO_CC_all <- Enrichment(df_SP_GEO_cells_genes_all,
 Enrich_GEO_CC_all_P <- Enrichment_barplot(Enrich_GEO_CC_all$SP_GEO_cells_all,
                                           enrich.databases = c("GO_Cellular_Component_2021"),
                                           p_adj = 0.05,
-                                          num_term = 5, cond = "UP")
+                                          num_term = 10, cond = "UP")
 
 
 print(Enrich_GEO_CC_all_P +ggtitle("SP - common")+ 
@@ -530,7 +511,7 @@ print(Enrich_GEO_CC_all_P +ggtitle("SP - common")+
 
 
 
-pdf("SP_common_CC_.pdf")
+pdf("SP_common_CC_.pdf", 5, 6)
 print(Enrich_GEO_CC_all_P +ggtitle("common SP CC")+ 
         theme(
           legend.title = element_text(size = 6), 
@@ -550,11 +531,13 @@ Enrich_GEO_BP_all <- Enrichment(df_SP_GEO_cells_genes_all,
 Enrich_GEO_BP_all_P <- Enrichment_barplot(Enrich_GEO_BP_all$SP_GEO_cells_all,
                                           enrich.databases = c("GO_Biological_Process_2021"),
                                           p_adj = 0.05,
-                                          num_term = 5, cond = "UP")
+                                          num_term = 10, cond = "UP")
 
 
 
-
+pdf("SP_common_CC_.pdf", 7,4)
+Enrich_GEO_CC_all_P 
+dev.off()
 
 pdf("SP_common_BP_.pdf")
 print(Enrich_GEO_BP_all_P +ggtitle("common SP BP")+ 
@@ -563,8 +546,6 @@ print(Enrich_GEO_BP_all_P +ggtitle("common SP BP")+
           legend.text = element_text(size = 6)   
         ) )
 dev.off()
-
-
 
 ```
 
@@ -600,11 +581,11 @@ fdr_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05, "GeneID"]
 SP_GEO_cells <- Gene2SProtein(genes = fdr_GeneID_cells, input_type = "gene_name")
 #77 out of 350 genes have a matching surface protein
 
-fdrUP_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange > 1, "GeneID"]
+fdrUP_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange > 0, "GeneID"]
 SPup_GEO_cells <- Gene2SProtein(genes = fdrUP_GeneID_cells, input_type = "gene_name")
 #77 out of 350 genes have a matching surface protein
 
-fdrDW_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange < 1, "GeneID"]
+fdrDW_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange < 0, "GeneID"]
 SPdw_GEO_cells <- Gene2SProtein(genes = fdrDW_GeneID_cells, input_type = "gene_name")
 #The input genes do not have any match in the surfaceome database.
 
@@ -634,11 +615,11 @@ fdr_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05, "GeneID"]
 SP_GEO_fascicle <- Gene2SProtein(genes = fdr_GeneID_fascicle, input_type = "gene_name")
 #20 out of 90 genes have a matching surface protein
 
-fdrUP_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange > 1, "GeneID"]
+fdrUP_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange > 0, "GeneID"]
 SPup_GEO_fascicle <- Gene2SProtein(genes = fdrUP_GeneID_fascicle, input_type = "gene_name")
 #20 out of 90 genes have a matching surface protein
 
-fdrDW_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange < 1, "GeneID"]
+fdrDW_GeneID_fascicle <- df_GEO_fascicle[df_GEO_fascicle$padj < 0.05 & df_GEO_fascicle$log2FoldChange < 0, "GeneID"]
 SPdw_GEO_fascicle <- Gene2SProtein(genes = fdrDW_GeneID_fascicle, input_type = "gene_name")
 #The input genes do not have any match in the surfaceome database.
 ```
@@ -660,7 +641,7 @@ dev.off()
 ```{r common }
 common_rownames <- rownames(SPup_GEO_fascicle)[rownames(SPup_GEO_fascicle) %in% rownames(SPup_GEO_cells)]
 SPup_GEO_common <- SPup_GEO_fascicle[common_rownames, ]
-
+SPup_GEO_common$GeneID
 #"HLAG_HUMAN"  "5HT1E_HUMAN" "MCHR1_HUMAN"
 
 # HLAG_HUMAN: https://www.sciencedirect.com/science/article/pii/S0969996122003448
@@ -686,106 +667,8 @@ Splot(SPup_GEO_common,
       group.by = "Membranome.Almen.main-class",
       main = "Almen class Adj")
 dev.off()
-##############################################################
-##############################################################
-##############################################################
-
-mGSE90711_cells$condition
-
-## Perform DGE on the the GEO dataset
-
-```{r GEO DGE }
-df_GEO_cells <- DGE(expression = cGSE90711_cells_ordered,
-              metadata = mGSE90711_cells,
-              Nreplica = 3,
-              design = "~condition",
-              condition = "condition",
-              alpha = 0.05,
-              TEST = "Schwann", CTRL ="fibroblast",
-              output_tsv = FALSE)
 
 
 
 
 
-# remove NA values
-df_GEO_cells <- df_GEO_cells[!is.na(df_GEO_cells$padj), ]
-df_GEO_cells[rownames(df_GEO_cells) == "NGFR", ]
-head(df_GEO_cells)
-
-# select only genes with a very Mean_CPM value < 0.5 in the control
-df_GEO_cells <- df_GEO_cells[df_GEO_cells$Mean_CPM_C < 0.5,]
-
-# Detect SP among differentially expressed genes
-fdr_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05, "GeneID"]
-
-SP_GEO_cells <- Gene2SProtein(genes = fdr_GeneID_cells, input_type = "gene_name")
-#if we apply filter df_GEO_cells$Mean_CPM_C < 0.5: 77 out of 350 genes have a matching surface protein
-# if we apply filter df_GEO_cells$Mean_CPM_C < 0.5: 43 out of 330 genes have a matching surface protein
-
-fdrUP_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange > 1, "GeneID"]
-SPup_GEO_cells <- Gene2SProtein(genes = fdrUP_GeneID_cells, input_type = "gene_name")
-#if we apply filter df_GEO_cells$Mean_CPM_C < 0.5: 77 out of 350 genes have a matching surface protein
-# if we apply filter df_GEO_cells$Mean_CPM_C < 0.5: 43 out of 330 genes have a matching surface protein
-
-SPup_GEO_cells$GeneID
-
-
-fdrDW_GeneID_cells <- df_GEO_cells[df_GEO_cells$padj < 0.05 & df_GEO_cells$log2FoldChange < 0, "GeneID"]
-SPdw_GEO_cells <- Gene2SProtein(genes = fdrDW_GeneID_cells, input_type = "gene_name")
-#The input genes do not have any match in the surfaceome database. 
-# if we apply filter df_GEO_cells$Mean_CPM_C < 0.5: 0 genes have a matching surface protein
-
-SPup_GEO_cells$GeneID
-```
-
-
-# Almen classification (Fig. 1F)
-
-```{r Almen classification }
-# Barplot of Almen classification
-
-pdf("Almen_class_SPUP_GSE90711.pdf")
-Splot(SPup_GEO_cells,
-      group.by = "Membranome.Almen.main-class",
-      main = "Almen class Adj")
-dev.off()
-```
-## Perform the enrichment of UP & DOWN regulated genes in GEO and TCGA datasets
-
-```{r Graphycally represent the enrichment}
-
-SP_GEO_cells_genes <- SP_GEO_cells$UniProt.gene
-df_SP_GEO_cells_genes <- df_GEO_cells[rownames(df_GEO_cells) %in% SP_GEO_cells_genes, ]
-
-
-
-dfList <- list( GEO = as.data.frame(df_SP_GEO_cells_genes))
-
-Enrich <- Enrichment(dfList,
-                     enrich.databases = c("GO_Biological_Process_2021"),
-                     p_adj = 0.05, logFC = 1, save.results = TRUE)
-
-```
-
-## Perform venn diagram of common SPCG in GEO, TCGA datasets and SPCG found via meta-analysis (Fig. S4D)
-
-#save.image(file="cholangiocarcinoma.RData")
-```
-
-```{r describe the SPCG }
-library(enrichR)
-
-filteredDGE <- df_GEO_cells[df_GEO_cells$GeneID %in% SPup_GEO_cells$GeneID,]
-annotated_SPup_Jensen_DISEASES <- Annotate_SPID(filteredDGE, c("Jensen_DISEASES")) # carcinoma
-
-annotated_SPup_DSigDB <- Annotate_SPID(filteredDGE, c("DSigDB"))
-annotated_SPup_IDG <- Annotate_SPID(filteredDGE, c("IDG_Drug_Targets_2022"))
-annotated_SPup_LINCS <- Annotate_SPID(filteredDGE, c("LINCS_L1000_Chem_Pert_Consensus_Sigs"))
-head(annotated_SPup_LINCS)
-list_df = list(annotated_SPup_Jensen_DISEASES, annotated_SPup_DSigDB, annotated_SPup_LINCS, annotated_SPup_IDG)
-names(list_df) <- c("Jensen_DISEASES", "DSigDB", "LINCS_L1000_Chem_Pert", "IDG_Drug_Targets_2022")
-
-write.xlsx(list_df, "Supp_table_Annotate_SPID_GSE90711.xlsx")
-getwd()
-```
